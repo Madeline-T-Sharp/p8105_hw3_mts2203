@@ -16,7 +16,7 @@ library(tidyverse)
 # loading p8105.datasets library
 library(p8105.datasets)
 
-# loading patchworks library
+# loading patchwork library
 library(patchwork)
 ```
 
@@ -140,3 +140,164 @@ snowfall_range_plot =
 # combining into a two-panel plot
 temp_range_plot + snowfall_range_plot
 ```
+
+# Problem 2
+
+## Reading, Cleaning and Merging the Accelerometer datasets
+
+```{r reading_cleaning_and_merging_accelerometer_datasets, message = F}
+# reading and cleaning nhanes_accel.csv data
+nhanes_accel_df = 
+  read_csv(
+    file = paste0(
+      "p8105_hw3_mts2203_files/",
+      "nhanes_accel.csv"), 
+    na = c("", "NA", ".")
+    ) |>
+  janitor::clean_names() |>
+  pivot_longer(
+    cols = starts_with("min"),
+    names_to = "minute",
+    values_to = "mims"
+  ) |>
+  mutate(
+    minute = as.numeric(str_remove(minute, "min")),
+    seqn = as.character(seqn)
+  )
+
+# reading and cleaning nhanes_covar.csv data
+nhanes_covar_df =
+  read_csv(
+    file = "p8105_hw3_mts2203_files/nhanes_covar.csv",
+    na = c("", "NA", "."),
+    skip = 4
+  ) |>
+  janitor::clean_names() |>
+  mutate(
+    sex = case_match(
+      sex,
+      1 ~ "male",
+      2 ~ "female"
+    ),
+    education = case_match(
+      education,
+      1 ~ "Less than high school",
+      2 ~ "High school equivalent",
+      3 ~ "More than high school"
+    )
+  ) |>
+  mutate(
+    sex = factor(sex),
+    education = factor(
+      education,
+      levels = c(
+        "Less than high school",
+        "High school equivalent",
+        "More than high school"
+      ),
+      ordered = TRUE
+    )
+  ) |>
+  mutate(
+    seqn = as.character(seqn)
+  ) |>
+  filter(age >= 21) |>
+  drop_na()
+
+# merging the two datasets
+nhanes_df =
+  inner_join(nhanes_accel_df, nhanes_covar_df, by = "seqn")
+```
+
+```{r table_and_plot, message = F}
+# producing a reader-friendly table for no. of men & women by education category
+nhanes_df |>
+  distinct(seqn, education, sex) |>
+  count(education, sex) |>
+  pivot_wider(
+    names_from = sex,
+    values_from = n
+  ) |>
+  knitr::kable(
+    col.names = c("Education", "Men", "Women"),
+    caption = "Number of Participants by Education and Sex"
+  )
+
+# visualizing age distributions for men and women by education category
+nhanes_df |>
+  distinct(seqn, age, sex, education) |>
+  ggplot(aes(x = sex, y = age, fill = sex)) +
+  geom_boxplot() +
+  facet_grid(.~ education) +
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  labs(
+    title = "Age Distributions by Sex and Education",
+    x = "Sex",
+    y = "Age (years)",
+    fill = "Sex"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+## Commenting on Table and Plot
+
+Both the table and the plot provide more substantial visualizations of how the number of men and women varies in each education category. As per the table, for women, the numbers increase as the education level increases. Whereas for men, this was not that case. While a "more than high school" education was the most common single category among men, the "less than high school" category was the second most common. That said, the number of men in the "more than high school" catgeory were more than twice those in the other two categories combined. Looking at the boxplot, when you add age into the mix, as education level increased for men, the reported age range captured tended to decrease. This was not the case for the women, where the oldest ages captured where in the "high school equivalent" category, followed by the "less than high school" and "more than high school" categories.
+
+```{r total_activity_plot, message = F}
+# plotting total activities against age using the total_activity variable
+nhanes_df |>
+  group_by(seqn, age, sex, education) |>
+  summarize(
+    total_activity = sum(mims, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = age, y = total_activity, color = sex)) +
+  geom_point(alpha = 0.2) +
+  geom_smooth(se = FALSE) +
+  facet_grid(.~ education) +
+   viridis::scale_color_viridis(discrete = TRUE) +
+  labs(
+    title = "Total Daily Activity by Age, Sex, and Education",
+    x = "Age (years)",
+    y = "Total Daily Activity (MIMS)",
+    color = "Sex"
+  ) +
+  theme_minimal()
+```
+
+
+## Commenting on Total Daily Activity Plot
+
+Within each level of education, the sex distributions related to total daily activity mimics one another in shape. Although, the are not exactly the same, with men genererally being less active than women in all except the "less than high school" category as an overall trend as age increases. The "less than high school" category starts with the highest daily activity level for both sexes and has the sharpest decline over age, although activity briefly picks back up for both sexes at around age 60. The "high school equivalent" category has activity rising with age until late 30s and early 40s before dropping off, with a brief rise again for women that begins in the 60s and ends around 70. For men in this cateory, exercise reaches its lowest point close to 60 and plateaus through to 80. The "more than high school" plot shows exercise plateauing for men and women in their 20s through to their 50s, with slight variations for men. In this category, exercise peaks for women at 60 before dropping steeply until age 80. Whereas for men activity begins dropping in their 40s. Generally, activity decreases as age decreases.
+
+```{r three_panel_plot, message = F}
+# making a three-panel plot of 24-hour activity time courses by education level 
+nhanes_df |>
+  group_by(seqn, minute, sex, education) |>
+  summarize(
+    mims = mean(mims, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(minute, sex, education) |>
+  summarize(
+    mean_mims = mean(mims, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = minute, y = mean_mims, color = sex)) +
+  geom_smooth(se = FALSE) +
+  facet_grid(.~ education) +
+  viridis::scale_color_viridis(discrete = TRUE) +
+  labs(
+    title = "Daily Activity Patterns by Education and Sex",
+    x = "Minute of the Day",
+    y = "Average MIMS",
+    color = "Sex"
+  ) +
+  theme_minimal()
+```
+
+## Commenting on 24-hour Activity Time Courses by Education Level Plot
+
+The general shapes of sex per minute of the day within a 24-hour period is similar across plots, with activity rising until around midday and dropping off at the end of day. However, women match or outpace men in activity throughout the day across categories. That said, for "less than high school" activity levels peaks close to midday for both sexes befor noticeably decreasing, whereas for the other categories activity plateaus in the late morning and afternoon before starkly decreasing as end-of-day approaches. Across all categories activity is at its absolute lowest around 250 minutes into, (or around 4-4:10am in), the morning.
+
