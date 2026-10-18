@@ -30,7 +30,7 @@ library(patchwork)
 data("ny_noaa")
 ```
 
-## Short Description
+## Short Description of the ny_noaa dataset
 
 The `ny_noaa` has `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. Its key (column) variables include `r paste(names(ny_noaa), collapse = ", ")`. The variables have the following data types, respectively: `r paste(sapply(ny_noaa, class), collapse = ", ")`. As for what each variable represents: `id` gives the weather station ID, 
 `date` gives the date of observation, `prcp` gives precipitation in tenths of mm, `snow` gives snowfall in mm, `snwd` gives snow depth in mm, `tmax` gives maximum temperature in tenths of degrees C, and `tmin` gives minimum temperature in tenths of degrees C. The proportion of missing values in each column is approximately as follows: `r ny_noaa |> summarize(across(everything(), ~ mean(is.na(.x)) * 100)) |> round(2) |> paste0("%", collapse = ", ")`. To clean the data, the missing values should be standardized to `NA`.
@@ -106,7 +106,6 @@ avg_max_temp |>
 ##  Comments on Structure and Outliers
 Yes, there is an observable/interpretable structure. The July maximum average temperatures are consistently higher than the January ones. The is a pattern that is seasonally expected. Temperatures also vary across stations and years, though, there is a visible overall pattern to the data across time in each plot. There are some potential outliers in each where some stations appear to be experiencing unusually high or low average maximum temperatures relative to the general set.
 
-
 ```{r range_two_panel_plot, message =F}
 # plotting tmax vs tmin for the full dataset
 temp_range_plot =
@@ -141,11 +140,12 @@ snowfall_range_plot =
 temp_range_plot + snowfall_range_plot
 ```
 
+
 # Problem 2
 
 ## Reading, Cleaning and Merging the Accelerometer datasets
 
-```{r reading_cleaning_and_merging_accelerometer_datasets, message = F}
+```{r reading_cleaning_and_merging_p2_datasets, message = F}
 # reading and cleaning nhanes_accel.csv data
 nhanes_accel_df = 
   read_csv(
@@ -301,3 +301,68 @@ nhanes_df |>
 
 The general shapes of sex per minute of the day within a 24-hour period is similar across plots, with activity rising until around midday and dropping off at the end of day. However, women match or outpace men in activity throughout the day across categories. That said, for "less than high school" activity levels peaks close to midday for both sexes befor noticeably decreasing, whereas for the other categories activity plateaus in the late morning and afternoon before starkly decreasing as end-of-day approaches. Across all categories activity is at its absolute lowest around 250 minutes into, (or around 4-4:10am in), the morning.
 
+
+# Problem 3
+
+##  Importing, Cleaning, Tidying and Describing the NYC Citi Bike Final Dataset
+
+``` {r import_clean_and_tidy_p3_data, message = F}
+# reading and cleaning the January 2020 dataset
+nyc_citi_bike_jan_2020 =
+  read_csv("p8105_hw3_mts2203_files/citibike/Jan 2020 Citi.csv") |>
+  mutate(month = "January", 
+         year = 2020)
+
+# reading and cleaning the January 2024 dataset
+nyc_citi_bike_jan_2024 =
+  read_csv("p8105_hw3_mts2203_files/citibike/Jan 2024 Citi.csv") |>
+  mutate(month = "January", 
+         year = 2024)
+
+# reading and cleaning the July 2020 dataset
+nyc_citi_bike_july_2020 =
+  read_csv("p8105_hw3_mts2203_files/citibike/July 2020 Citi.csv") |>
+  mutate(month = "July", 
+         year = 2020)
+
+# reading and cleaning the July 2024 dataset
+nyc_citi_bike_july_2024 =
+  read_csv("p8105_hw3_mts2203_files/citibike/July 2024 Citi.csv") |>
+  mutate(month = "July", 
+         year = 2024)
+
+# combining all NYC Citi Bike datasets
+nyc_citi_bike_df =
+  bind_rows(
+    nyc_citi_bike_jan_2020,
+    nyc_citi_bike_jan_2024,
+    nyc_citi_bike_july_2020,
+    nyc_citi_bike_july_2024
+  ) |>
+  janitor::clean_names() |>
+  mutate(
+    month = factor(month, levels = c("January", "July")),
+    year = as.integer(year)
+  )
+```
+
+## Short Description of the Resulting Dataset
+
+The `nyc_citi_bike_df` has `r nrow(nyc_citi_bike_df)` rows and `r ncol(nyc_citi_bike_df)` columns. Its key (column) variables include `r paste(names(nyc_citi_bike_df), collapse = ", ")`. The variables have the following data types, respectively: `r paste(sapply(nyc_citi_bike_df, class), collapse = ", ")`
+
+## Producing a reader-friendly table of rides per year, month and rider type
+
+```{r reader_friendly_table, message = F}
+# producing a reader-friendly table of rides per year, month, and rider type
+nyc_citi_bike_df |>
+  count(year, month, member_casual) |>
+  pivot_wider(
+    names_from = member_casual,
+    values_from = n
+  ) |>
+  arrange(year, month) |>
+  knitr::kable(
+    col.names = c("Year", "Month", "Casual Riders", "Members"),
+    caption = "Total Citi Bike Rides by Year, Month, and Rider Type"
+  )
+```
