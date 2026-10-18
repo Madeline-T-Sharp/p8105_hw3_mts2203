@@ -23,14 +23,14 @@ library(patchwork)
 
 # Problem 1
 
-## Reading ny_noaa dataset
+## Reading ny_noaa Dataset
 
 ```{r reading_p1_data, message = F}
 # reading ny_noaa data
 data("ny_noaa")
 ```
 
-## Short Description of the ny_noaa dataset
+## Short Description of the ny_noaa Dataset
 
 The `ny_noaa` has `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. Its key (column) variables include `r paste(names(ny_noaa), collapse = ", ")`. The variables have the following data types, respectively: `r paste(sapply(ny_noaa, class), collapse = ", ")`. As for what each variable represents: `id` gives the weather station ID, 
 `date` gives the date of observation, `prcp` gives precipitation in tenths of mm, `snow` gives snowfall in mm, `snwd` gives snow depth in mm, `tmax` gives maximum temperature in tenths of degrees C, and `tmin` gives minimum temperature in tenths of degrees C. The proportion of missing values in each column is approximately as follows: `r ny_noaa |> summarize(across(everything(), ~ mean(is.na(.x)) * 100)) |> round(2) |> paste0("%", collapse = ", ")`. To clean the data, the missing values should be standardized to `NA`.
@@ -349,7 +349,7 @@ nyc_citi_bike_df =
 
 The `nyc_citi_bike_df` has `r nrow(nyc_citi_bike_df)` rows and `r ncol(nyc_citi_bike_df)` columns. Its key (column) variables include `r paste(names(nyc_citi_bike_df), collapse = ", ")`. The variables have the following data types, respectively: `r paste(sapply(nyc_citi_bike_df, class), collapse = ", ")`.
 
-## Producing a reader-friendly table of rides per year, month and rider type
+## Producing a Reader-friendly Table of Rides per Year, Month and Rider Type
 
 ```{r reader_friendly_table, message = F}
 # producing a reader-friendly table of rides per year, month, and rider type
@@ -367,11 +367,11 @@ nyc_citi_bike_reader_friendly_df =
   )
 ```
 
-## Commenting on the table of rides per year, month and rider type
+## Commenting on the Table of Rides per Year, Month and Rider Type
 
 The reader-friendly `nyc_citi_bike_reader_friendly_df` table has `r nrow(nyc_citi_bike_reader_friendly_df)` rows and `r ncol(nyc_citi_bike_reader_friendly_df)` columns. Its key (column) variables include `r paste(names(nyc_citi_bike_reader_friendly_df), collapse = ", ")`. The variables have the following data types, respectively: `r paste(sapply(nyc_citi_bike_reader_friendly_df, class), collapse = ", ")`. July 2024 has the largest number of both casual riders and Citi Bike members. Generally, July has higher numbers than January. This is likely because people ride more Citi Bikes in the summer than in the winter. The summer is also likely a higher tourist season, which would also boost the number of casual riders. The COVID-19 pandemic may be accounting for the much lower summer numbers in 2020, than in 2024. Members vastly outpace casual riders in all months.
 
-## Making a table showing the 5 most popular starting stations for July 2024
+## Making a Table Showing the 5 Most Popular Starting Stations for July 2024
 
 ```{r most_popular_starting_station_July_2024_table, message = F}
 # making a table of the 5 most popular starting stations for July 2024
@@ -387,7 +387,7 @@ nyc_citi_bike_df |>
   )
 ```
 
-## Making a plot to investigate time span's effects on median ride duration
+## Making a Plot to Investigate Timespan's Effects on Median Ride Duration
 
 ```{r time_span_effects_on_median_ride_duration_plot, message = F}
 # plotting the median ride duration by day of week, month, and year
@@ -411,11 +411,11 @@ nyc_citi_bike_df |>
   theme_minimal()
 ```
 
-## Commenting on observations about median ride duration by timespan plot
+## Commenting on Observations about Median Ride Duration by Timespan Plot
 
 The `nyc_citi_bike_df` plot shows that weekend ride duration is generally higher on average and July ride duration is higher than average, and 2020 ride duration is generally higher on average. Higher ride duration in July might reflect seasonal differences. Altogether, the highest ride duration is on weekends in July 2020.  
 
-## Making figure of month, membership status, and bike type on ride duration
+## Making Figure of Month, Membership Status, and Bike Type on Ride Duration
 
 ```{r month_membership_bike_duration_plot, message = F}
 # plotting figure of month, membership status, and bike type on ride duration
@@ -435,3 +435,6 @@ nyc_citi_bike_df |>
     legend.position = "none"
   )
 ```
+
+## Commenting on Ride Duration Figure
+The `nyc_citi_bike_df` figure depicting month, membership status, and bike type on ride duration provides results that are fairly similar regarding of month, membership status, and bike type relative to ride duration. The slight difference exists in that for casual riders `classic_bike` riding duration is slightly longer than `electric_bike` regardless of month. Also, generally casual riders ride either bike type slightly longer than members do. For members, the median value of `classic_bike` is especially close to `electric_bike` duration, with `electric_bike` ride duration being slightly higher than `classic_bike` duration in July.
