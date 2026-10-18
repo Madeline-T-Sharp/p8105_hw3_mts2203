@@ -229,7 +229,6 @@ nhanes_df |>
   ggplot(aes(x = sex, y = age, fill = sex)) +
   geom_boxplot() +
   facet_grid(.~ education) +
-  viridis::scale_fill_viridis(discrete = TRUE) +
   labs(
     title = "Age Distributions by Sex and Education",
     x = "Sex",
@@ -348,13 +347,14 @@ nyc_citi_bike_df =
 
 ## Short Description of the Resulting Dataset
 
-The `nyc_citi_bike_df` has `r nrow(nyc_citi_bike_df)` rows and `r ncol(nyc_citi_bike_df)` columns. Its key (column) variables include `r paste(names(nyc_citi_bike_df), collapse = ", ")`. The variables have the following data types, respectively: `r paste(sapply(nyc_citi_bike_df, class), collapse = ", ")`
+The `nyc_citi_bike_df` has `r nrow(nyc_citi_bike_df)` rows and `r ncol(nyc_citi_bike_df)` columns. Its key (column) variables include `r paste(names(nyc_citi_bike_df), collapse = ", ")`. The variables have the following data types, respectively: `r paste(sapply(nyc_citi_bike_df, class), collapse = ", ")`.
 
 ## Producing a reader-friendly table of rides per year, month and rider type
 
 ```{r reader_friendly_table, message = F}
 # producing a reader-friendly table of rides per year, month, and rider type
-nyc_citi_bike_df |>
+nyc_citi_bike_reader_friendly_df = 
+  nyc_citi_bike_df |>
   count(year, month, member_casual) |>
   pivot_wider(
     names_from = member_casual,
@@ -364,5 +364,74 @@ nyc_citi_bike_df |>
   knitr::kable(
     col.names = c("Year", "Month", "Casual Riders", "Members"),
     caption = "Total Citi Bike Rides by Year, Month, and Rider Type"
+  )
+```
+
+## Commenting on the table of rides per year, month and rider type
+
+The reader-friendly `nyc_citi_bike_reader_friendly_df` table has `r nrow(nyc_citi_bike_reader_friendly_df)` rows and `r ncol(nyc_citi_bike_reader_friendly_df)` columns. Its key (column) variables include `r paste(names(nyc_citi_bike_reader_friendly_df), collapse = ", ")`. The variables have the following data types, respectively: `r paste(sapply(nyc_citi_bike_reader_friendly_df, class), collapse = ", ")`. July 2024 has the largest number of both casual riders and Citi Bike members. Generally, July has higher numbers than January. This is likely because people ride more Citi Bikes in the summer than in the winter. The summer is also likely a higher tourist season, which would also boost the number of casual riders. The COVID-19 pandemic may be accounting for the much lower summer numbers in 2020, than in 2024. Members vastly outpace casual riders in all months.
+
+## Making a table showing the 5 most popular starting stations for July 2024
+
+```{r most_popular_starting_station_July_2024_table, message = F}
+# making a table of the 5 most popular starting stations for July 2024
+nyc_citi_bike_df |>
+  filter(year == 2024, month == "July") |>
+  count(start_station_name, sort = TRUE) |>
+  head(5) |>
+  knitr::kable(
+    col.names = c("Starting Station", "Number of Rides"),
+    caption = "Top 5 Most Popular Citi Bike Starting Stations, July 2024",
+    format.args = list(big.mark = ","),
+    align = "c"
+  )
+```
+
+## Making a plot to investigate time span's effects on median ride duration
+
+```{r time_span_effects_on_median_ride_duration_plot, message = F}
+# plotting the median ride duration by day of week, month, and year
+nyc_citi_bike_df |>
+  group_by(year, month, weekdays) |>
+  summarize(
+    median_duration = median(duration, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  ggplot(
+    aes(x = weekdays, y = median_duration, group = 1)
+  ) +
+  geom_line() +
+  geom_point() +
+  facet_grid(rows = vars(year), cols = vars(month)) +
+  labs(
+    title = "Median Citi Bike Ride Duration by Day of Week, Month, and Year",
+    x = "Day of Week",
+    y = "Median Ride Duration"
+  ) +
+  theme_minimal()
+```
+
+## Commenting on observations about median ride duration by timespan plot
+
+The `nyc_citi_bike_df` plot shows that weekend ride duration is generally higher on average and July ride duration is higher than average, and 2020 ride duration is generally higher on average. Higher ride duration in July might reflect seasonal differences. Altogether, the highest ride duration is on weekends in July 2020.  
+
+## Making figure of month, membership status, and bike type on ride duration
+
+```{r month_membership_bike_duration_plot, message = F}
+# plotting figure of month, membership status, and bike type on ride duration
+nyc_citi_bike_df |>
+  filter(year == 2024, duration > 0) |>
+  ggplot(aes(x = rideable_type, y = duration, fill = rideable_type)) +
+  geom_boxplot(outlier.alpha = 0.2) +
+  facet_grid(rows = vars(month), cols = vars(member_casual)) +
+  scale_y_log10() +
+  labs(
+    title = "Ride Duration by Month, Membership Status, and Bike Type in 2024",
+    x = "Bike Type",
+    y = "Ride Duration (log scale)"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none"
   )
 ```
