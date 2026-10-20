@@ -41,11 +41,19 @@ The `ny_noaa` has `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns. Its key 
 # creating, cleaning and standardizing values in ny_noaa_df
 ny_noaa_df =
   ny_noaa |>
-  separate(date, into = c("year", "month", "day"), sep = "-") |>
-mutate(
-    tmax = as.numeric(tmax) / 10,
-    tmin = as.numeric(tmin) / 10,
-    prcp = as.numeric(prcp) / 10
+  separate(
+    date,
+    into = c("year", "month", "day"),
+    sep = "-"
+  ) |>
+  mutate(
+    across(
+      c(prcp, snow, snwd, tmax, tmin),
+      ~ na_if(as.numeric(.x), -9999)
+    ),
+    tmax = tmax / 10,
+    tmin = tmin / 10,
+    prcp = prcp / 10
   )
 
 # counting the most commonly observed values for snowfall
@@ -306,7 +314,7 @@ nhanes_df |>
 
 ## Commenting on 24-hour Activity Time Courses by Education Level Plot
 
-The general shapes of sex per minute of the day within a 24-hour period is similar across plots, with activity rising until around midday and dropping off at the end of day. However, women match or outpace men in activity throughout the day across categories. That said, "less than high school" activity levels peak close to midday for both sexes before noticeably decreasing. Whereas for the other categories, activity plateaus in the late morning and afternoon before starkly decreasing as end-of-day approaches. Across all categories activity is at its absolute lowest around 250 minutes into, (or around 4-4:10am in), the morning.
+The general shapes of sex per minute of the day within a 24-hour period is similar across plots, with activity rising until around midday and dropping off at the end of day. However, women match or outpace men in activity throughout the day across categories. That said, "less than high school" activity levels peak close to midday for both sexes before noticeably decreasing. Whereas for the other categories, activity plateaus in the late morning and afternoon before starkly decreasing as end-of-day approaches. Across all categories activity is at its absolute lowest around ~250 minutes into, (or around ~4:09am in), the morning.
 
 
 # Problem 3
@@ -403,6 +411,15 @@ nyc_citi_bike_df |>
 ```{r time_span_effects_on_median_ride_duration_plot, message = F}
 # plotting the median ride duration by day of week, month, and year
 nyc_citi_bike_df |>
+  mutate(
+    weekdays = factor(
+      weekdays,
+      levels = c(
+        "Monday", "Tuesday", "Wednesday",
+        "Thursday", "Friday", "Saturday", "Sunday"
+      )
+    )
+  ) |>
   group_by(year, month, weekdays) |>
   summarize(
     median_duration = median(duration, na.rm = TRUE),
@@ -419,12 +436,13 @@ nyc_citi_bike_df |>
     x = "Day of Week",
     y = "Median Ride Duration"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 ## Commenting on Observations about Median Ride Duration by Timespan Plot
 
-The `nyc_citi_bike_df` plot shows that weekend ride duration is generally higher on average, July ride duration is higher than average, and 2020 ride duration is generally higher on average. Higher ride duration in July might reflect seasonal differences. Altogether, the highest ride duration is on weekends in July 2020.  
+The `nyc_citi_bike_df` plot shows that median ride duration is generally longer on weekends than on weekdays. Median ride duration also tends to be higher in July than in January, potentially reflecting seasonal differences in riding behavior. Additionally, median ride duration appears generally higher in 2020 than in 2024. Overall, the longest median ride durations occur on weekends in July 2020.
 
 ## Making Figure of Month, Membership Status, and Bike Type on Ride Duration
 
