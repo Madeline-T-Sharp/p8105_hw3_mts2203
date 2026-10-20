@@ -61,7 +61,7 @@ In the `ny_noaa_df`, `r ny_noaa |> summarize(median_snow = median(snow, na.rm = 
 ## Plotting Avg. Max Temp. in January and in July in each Station over Years
 
 ```{r temp_two_panel_plot, message = FALSE}
-#  calculating average maximum temperature for each station, year, and month
+# calculating average maximum temperature for each station, year, and month
 avg_max_temp =
   ny_noaa_df |>
   mutate(
@@ -104,7 +104,10 @@ avg_max_temp |>
 ```
 
 ##  Comments on Structure and Outliers
+
 Yes, there is an observable/interpretable structure. The July maximum average temperatures are consistently higher than the January ones. This is a pattern that is seasonally expected. Temperatures also vary across stations and years, though, there is a visible overall pattern to the data across time in each plot. There are some potential outliers in each where some stations appear to be experiencing unusually high or low average maximum temperatures relative to the general set.
+
+## Making Temperature and Snowfall Plots
 
 ```{r range_two_panel_plot, message =F}
 # plotting tmax vs tmin for the full dataset
@@ -209,6 +212,8 @@ nhanes_df =
   inner_join(nhanes_accel_df, nhanes_covar_df, by = "seqn")
 ```
 
+## Manipulating Sex and Education Data into a Table and a Visualization
+
 ```{r table_and_plot, message = F}
 # producing a reader-friendly table for no. of men & women by education category
 nhanes_df |>
@@ -243,6 +248,8 @@ nhanes_df |>
 
 Both the table and the plot provide more substantial visualizations of how the number of men and women varies in each education category. As per the table, for women the numbers increase as the education level increases. Whereas for men this was not that case. While a "more than high school" education was the most common single category among men, the "less than high school" category was the second most common. That said, the number of men in the "more than high school" catgeory were more than twice those in the other two categories combined. Looking at the boxplot where age is added to the mix, education level increased for men as the reported age range captured tended to decrease. This was not the case for the women, where the oldest ages captured were in the "high school equivalent" category, followed by the "less than high school", and "more than high school" categories.
 
+## Plotting Total Activities Against Age
+
 ```{r total_activity_plot, message = F}
 # plotting total activities against age using the total_activity variable
 nhanes_df |>
@@ -265,10 +272,11 @@ nhanes_df |>
   theme_minimal()
 ```
 
-
 ## Commenting on Total Daily Activity Plot
 
 Within each level of education, the sex distributions related to total daily activity mimic one another in shape. Although these sex distributions are not exactly the same, with men generally being less active than women in all except the "less than high school" category as an overall trend as age increases. The "less than high school" category starts with the highest daily activity level for both sexes and has the sharpest decline over age, although activity briefly picks back up for both sexes at around age 60. The "high school equivalent" category has activity rising with age until late 30s and early 40s before dropping off, with a brief rise again for women that begins in the 60s and ends around 70. For men in this cateory, exercise reaches its lowest point close to 60 and plateaus through to 80. The "more than high school" plot shows exercise plateauing for men and women in their 20s through to their 50s, with slight variations for men. In this category, exercise peaks for women at 60 before dropping steeply until age 80. Whereas for men, activity begins dropping in their 40s. Generally, activity decreases as age decreases.
+
+## Making a Three-Panel Plot of 24-hour Activity by Education Level
 
 ```{r three_panel_plot, message = F}
 # making a three-panel plot of 24-hour activity time courses by education level 
@@ -352,7 +360,7 @@ The `nyc_citi_bike_df` has `r nrow(nyc_citi_bike_df)` rows and `r ncol(nyc_citi_
 ## Producing a Reader-friendly Table of Rides per Year, Month and Rider Type
 
 ```{r reader_friendly_table, message = F}
-# producing a reader-friendly table of rides per year, month, and rider type
+# producing a data frame of rides per year, month, and rider type
 nyc_citi_bike_reader_friendly_df = 
   nyc_citi_bike_df |>
   count(year, month, member_casual) |>
@@ -362,6 +370,7 @@ nyc_citi_bike_reader_friendly_df =
   ) |>
   arrange(year, month)
 
+# knitting data frame into a reader-friendly table
   knitr::kable(
     nyc_citi_bike_reader_friendly_df,
     col.names = c("Year", "Month", "Casual Riders", "Members"),
@@ -439,4 +448,5 @@ nyc_citi_bike_df |>
 ```
 
 ## Commenting on Ride Duration Figure
+
 The `nyc_citi_bike_df` figure depicting month, membership status, and bike type on ride duration provides results that are fairly similar regarding month, membership status, and bike type relative to ride duration. The slight difference exists in that for casual riders `classic_bike` riding duration is slightly longer than `electric_bike` regardless of month. Also, generally casual riders ride either bike type slightly longer than members do. For members, the median value of `classic_bike` is especially close to `electric_bike` duration, with `electric_bike` ride duration being slightly higher than `classic_bike` duration in July.
